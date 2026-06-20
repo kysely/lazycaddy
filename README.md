@@ -10,7 +10,19 @@ lazycaddy treats the running Caddy Admin API config as the source of truth, then
 - Local Caddy instance with Admin API enabled, or an explicit Admin API URL
 - Linux/systemd for full service discovery and `journalctl` integration
 
+## Install
+
+Install the latest tagged release with Go:
+
+```bash
+go install github.com/kysely/lazycaddy/cmd/lazycaddy@latest
+```
+
+Or download a prebuilt binary from GitHub Releases once releases are published.
+
 ## Build and run
+
+Run locally from a checkout:
 
 ```bash
 go run ./cmd/lazycaddy
@@ -44,6 +56,17 @@ make test
 make vet
 make check
 ```
+
+## Release
+
+Releases are built with GoReleaser from Git tags. To publish a release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow builds Linux and macOS binaries for amd64 and arm64 and uploads checksums.
 
 ## Admin API discovery
 
