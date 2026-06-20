@@ -94,13 +94,23 @@ type Model struct {
 }
 
 var (
+	colorTitle      = lipgloss.AdaptiveColor{Light: "#0369a1", Dark: "#38bdf8"}
+	colorPrimary    = lipgloss.AdaptiveColor{Light: "#111827", Dark: "#e5e7eb"}
+	colorMuted      = lipgloss.AdaptiveColor{Light: "#64748b", Dark: "#94a3b8"}
+	colorActive     = lipgloss.AdaptiveColor{Light: "#2563eb", Dark: "#60a5fa"}
+	colorWarn       = lipgloss.AdaptiveColor{Light: "#d97706", Dark: "#f59e0b"}
+	colorOK         = lipgloss.AdaptiveColor{Light: "#16a34a", Dark: "#22c55e"}
+	colorErr        = lipgloss.AdaptiveColor{Light: "#dc2626", Dark: "#f87171"}
+	colorSelectedBg = lipgloss.AdaptiveColor{Light: "#dbeafe", Dark: "#1e3a5f"}
+	colorSelectedFg = lipgloss.AdaptiveColor{Light: "#111827", Dark: "#f8fafc"}
+
 	pageStyle            = lipgloss.NewStyle().Padding(1, 2)
-	titleStyle           = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#0369a1"))
-	mutedStyle           = lipgloss.NewStyle().Foreground(lipgloss.Color("#64748b"))
-	statusWarnStyle      = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#d97706"))
-	statusOKStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#16a34a"))
-	statusErrStyle       = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#dc2626"))
-	selectedServiceStyle = lipgloss.NewStyle().Background(lipgloss.Color("#dbeafe")).Foreground(lipgloss.Color("#111827"))
+	titleStyle           = lipgloss.NewStyle().Bold(true).Foreground(colorTitle)
+	mutedStyle           = lipgloss.NewStyle().Foreground(colorMuted)
+	statusWarnStyle      = lipgloss.NewStyle().Bold(true).Foreground(colorWarn)
+	statusOKStyle        = lipgloss.NewStyle().Bold(true).Foreground(colorOK)
+	statusErrStyle       = lipgloss.NewStyle().Bold(true).Foreground(colorErr)
+	selectedServiceStyle = lipgloss.NewStyle().Background(colorSelectedBg).Foreground(colorSelectedFg)
 )
 
 // New creates a UI model and performs synchronous lightweight discovery before the TUI starts.
@@ -580,7 +590,7 @@ func (m Model) breadcrumbServiceLabel(width int) string {
 }
 
 func breadcrumbActiveStyle() lipgloss.Style {
-	return lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#2563eb"))
+	return lipgloss.NewStyle().Bold(true).Foreground(colorActive)
 }
 
 func (m Model) accessLogWindow(entries []applogs.ParsedAccessLogEntry) accessLogWindow {
@@ -626,7 +636,7 @@ func filterLabel(label string, key string, active bool) string {
 	rest := mutedStyle.Render(label[1:])
 	if active {
 		dot = statusWarnStyle.Render("● ")
-		rest = lipgloss.NewStyle().Foreground(lipgloss.Color("#111827")).Bold(true).Render(label[1:])
+		rest = lipgloss.NewStyle().Foreground(colorPrimary).Bold(true).Render(label[1:])
 	}
 
 	return dot + statusWarnStyle.Render(key) + rest
@@ -677,19 +687,19 @@ func (m Model) requestTableRow(entry applogs.ParsedAccessLogEntry, selected bool
 func statusCodeStyle(status int, selected bool) lipgloss.Style {
 	style := lipgloss.NewStyle()
 	if selected {
-		style = style.Background(lipgloss.Color("#dbeafe"))
+		style = style.Background(colorSelectedBg)
 	}
 	switch {
 	case status >= 500:
-		return style.Foreground(lipgloss.Color("#dc2626"))
+		return style.Foreground(colorErr)
 	case status >= 400:
-		return style.Foreground(lipgloss.Color("#d97706"))
+		return style.Foreground(colorWarn)
 	case status >= 300:
-		return style.Foreground(lipgloss.Color("#2563eb"))
+		return style.Foreground(colorActive)
 	case status >= 200:
-		return style.Foreground(lipgloss.Color("#16a34a"))
+		return style.Foreground(colorOK)
 	default:
-		return style.Foreground(lipgloss.Color("#64748b"))
+		return style.Foreground(colorMuted)
 	}
 }
 
@@ -1570,7 +1580,7 @@ func selectedLine(value string, width int) string {
 
 func (m Model) selectedServiceReachabilityDot(source caddy.CaddySource) string {
 	return lipgloss.NewStyle().
-		Background(lipgloss.Color("#dbeafe")).
+		Background(colorSelectedBg).
 		Foreground(m.serviceReachabilityColor(source)).
 		Render("●")
 }
@@ -1579,16 +1589,16 @@ func (m Model) serviceReachabilityDot(source caddy.CaddySource) string {
 	return lipgloss.NewStyle().Foreground(m.serviceReachabilityColor(source)).Render("●")
 }
 
-func (m Model) serviceReachabilityColor(source caddy.CaddySource) lipgloss.Color {
+func (m Model) serviceReachabilityColor(source caddy.CaddySource) lipgloss.TerminalColor {
 	switch m.serviceReachabilityStatus(source) {
 	case "REACHABLE":
-		return lipgloss.Color("#16a34a")
+		return colorOK
 	case "UNREACHABLE":
-		return lipgloss.Color("#dc2626")
+		return colorErr
 	case "CHECKING":
-		return lipgloss.Color("#d97706")
+		return colorWarn
 	default:
-		return lipgloss.Color("#64748b")
+		return colorMuted
 	}
 }
 

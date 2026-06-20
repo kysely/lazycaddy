@@ -62,6 +62,18 @@ CADDY_ADMIN_API=http://localhost:2019 go run ./cmd/lazycaddy
 go run ./cmd/lazycaddy --admin-url http://localhost:2019
 ```
 
+## Theme detection
+
+lazycaddy uses terminal background detection for automatic light/dark colors. If your terminal or tmux does not report its background correctly, force a theme with:
+
+```bash
+go run ./cmd/lazycaddy --theme light
+go run ./cmd/lazycaddy --theme dark
+LAZYCADDY_THEME=light go run ./cmd/lazycaddy
+```
+
+Accepted values are `auto`, `light`, and `dark`.
+
 ## UI model
 
 lazycaddy opens on **Services** and provides:
