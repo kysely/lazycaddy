@@ -1,22 +1,51 @@
 # lazycaddy
 
-A lazygit-style Bun/OpenTUI TUI for inspecting the local Caddy instance.
+A fast Go TUI for inspecting and troubleshooting the local Caddy instance.
 
-lazycaddy treats the running Caddy Admin API config as the source of truth, then uses the discovered Caddyfile for source correlation and config context.
+lazycaddy treats the running Caddy Admin API config as the source of truth, then uses the discovered Caddyfile for source correlation and config context when available.
 
-## Install
+## Requirements
+
+- Go 1.22+
+- Local Caddy instance with Admin API enabled, or an explicit Admin API URL
+- Linux/systemd for full service discovery and `journalctl` integration
+
+## Build and run
 
 ```bash
-bun install
+go run ./cmd/lazycaddy
 ```
 
-## Run
+Build a local binary:
 
 ```bash
-bun dev
-# or
-bun run src/index.ts
+go build ./cmd/lazycaddy
+./lazycaddy
 ```
+
+Run tests:
+
+```bash
+go test ./...
+```
+
+Make shortcuts are also available. The simplest local run command is:
+
+```bash
+make
+```
+
+Other useful commands:
+
+```bash
+make run
+make build
+make test
+make vet
+make check
+```
+
+## Admin API discovery
 
 lazycaddy discovers the Admin API endpoint in this order:
 
@@ -24,35 +53,25 @@ lazycaddy discovers the Admin API endpoint in this order:
 2. `CADDY_ADMIN_API` / `CADDY_ADMIN_URL` environment override
 3. `systemd` `caddy.service`: inspect the running process / `ExecStart`, read `--config`, and parse the Caddyfile/JSON `admin` setting
 4. running `caddy` process fallback via `pgrep`
-5. Caddy's default endpoint: `http://localhost:2019/config/`
+5. Caddy's default endpoint: `http://localhost:2019`
 
 Override the Admin API URL with either:
 
 ```bash
-CADDY_ADMIN_API=http://localhost:2019 bun dev
-bun dev --admin-url http://localhost:2019
+CADDY_ADMIN_API=http://localhost:2019 go run ./cmd/lazycaddy
+go run ./cmd/lazycaddy --admin-url http://localhost:2019
 ```
 
 ## UI model
 
-lazycaddy uses one global column and opens on **Services**.
+lazycaddy opens on **Services** and provides:
 
 - **Services**: source/host list from the active runtime config
 - **Logs**: selected service access-log request table
 - **Request detail**: selected access request details
 - **Config**: selected service Caddyfile block + active runtime summary
 - **System**: Caddy service status, startup config, validation, Admin API status, discovery notes, and service logs
-
-The top line is only an orientation breadcrumb on detail pages, for example:
-
-```txt
-dev.example.org › logs
-dev.example.org › logs › 500 GET /api/users
-dev.example.org › config
-caddy › system
-```
-
-The bottom status bar contains actions and keeps the global Admin API status dot visible on the right.
+- **Help**: keybinding reference
 
 ## Keys
 
@@ -87,13 +106,13 @@ Request detail
 c          open Config for selected service
 
 Config
-↓/j        scroll config overlay down
-↑/k        scroll config overlay up
+↓/j        scroll config down
+↑/k        scroll config up
 ←/esc/h/c  close Config
 
 System
-↓/j        scroll system overlay down
-↑/k        scroll system overlay up
+↓/j        scroll system down
+↑/k        scroll system up
 e          toggle error/warning service-log filter
 v          validate discovered Caddy config
 ←/esc/h/S  return
@@ -113,3 +132,15 @@ log {
 ```
 
 Console/stdout/stderr access logs are also parsed from `caddy.service` logs when configured in the active Caddy config.
+
+## Development
+
+Project layout:
+
+```txt
+cmd/lazycaddy/       CLI entrypoint
+internal/app/        UI-independent application state and caches
+internal/caddy/      Admin API, discovery, config extraction, Caddyfile correlation, health checks
+internal/logs/       access/service log parsing and readers
+internal/ui/         Bubble Tea model, views, key handling, refresh commands
+```

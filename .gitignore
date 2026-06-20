@@ -1,9 +1,10 @@
-# dependencies (bun install)
+# dependencies
 node_modules
 
 # output
 out
 dist
+/lazycaddy
 *.tgz
 
 # code coverage
