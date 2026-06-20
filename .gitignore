@@ -1,9 +1,10 @@
-# dependencies (bun install)
+# dependencies
 node_modules
 
 # output
 out
 dist
+/lazycaddy
 *.tgz
 
 # code coverage
@@ -11,7 +12,7 @@ coverage
 *.lcov
 
 # logs
-logs
+/logs
 *.log
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
