@@ -1,18 +1,29 @@
 # lazycaddy
 
-A fast Go TUI for inspecting and troubleshooting the local Caddy instance.
+A fast terminal dashboard for inspecting and troubleshooting your local Caddy server.
 
-lazycaddy treats the running Caddy Admin API config as the source of truth, then uses the discovered Caddyfile for source correlation and config context when available.
+lazycaddy gives you a live, service-oriented view of the Caddy instance that is actually running. It reads the active Caddy Admin API config, discovers your sites, follows their access logs, shows request details, checks upstream health, and correlates runtime config back to your Caddyfile when available.
 
-## Requirements
+## What it does
 
-- Go 1.22+
-- Local Caddy instance with Admin API enabled, or an explicit Admin API URL
-- Linux/systemd for full service discovery and `journalctl` integration
+- **Browse Caddy services** discovered from the active runtime config
+- **Inspect access logs** per site/source with status, method, path, duration, and upstream details
+- **Drill into requests** to see headers, timing, TLS, client, upstream, and error context
+- **Jump to config** for the selected service, including Caddyfile source context when discoverable
+- **Check system state**: Admin API reachability, Caddy service status, startup config, validation, discovery notes, and service logs
+- **Filter noisy logs** by slow requests, warnings/errors, and time window
+- **Run locally with no agent**: lazycaddy talks to your existing Caddy instance and exits cleanly
 
 ## Install
 
-Install on Linux from GitHub Releases:
+### Homebrew
+
+```bash
+brew tap kysely/tap
+brew install lazycaddy
+```
+
+### Linux/macOS install script
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kysely/lazycaddy/main/install.sh | sh
@@ -26,113 +37,49 @@ Install a specific version or directory:
 curl -fsSL https://raw.githubusercontent.com/kysely/lazycaddy/main/install.sh | sh -s -- --version v0.1.1 --bindir ~/.local/bin
 ```
 
-Install the latest tagged release with Go:
+### Go
 
 ```bash
 go install github.com/kysely/lazycaddy/cmd/lazycaddy@latest
 ```
 
-Install with Homebrew once the tap is published:
+### Debian/Ubuntu package
+
+Download the `.deb` for your release and architecture from GitHub Releases, then install it:
 
 ```bash
-brew tap kysely/tap
-brew install lazycaddy
+curl -LO https://github.com/kysely/lazycaddy/releases/download/v0.1.1/lazycaddy_0.1.1_linux_amd64.deb
+sudo apt install ./lazycaddy_0.1.1_linux_amd64.deb
 ```
 
-Install the Debian/Ubuntu package from a GitHub Release:
+Replace `v0.1.1`, `0.1.1`, and `amd64` with the release and architecture you want.
+
+## Quick start
 
 ```bash
-curl -LO https://github.com/kysely/lazycaddy/releases/download/v0.1.0/lazycaddy_0.1.0_linux_amd64.deb
-sudo apt install ./lazycaddy_0.1.0_linux_amd64.deb
+lazycaddy
 ```
 
-Replace `v0.1.0`, `0.1.0`, and `amd64` with the release and architecture you want.
-
-## Build and run
-
-Run locally from a checkout:
+If your Caddy Admin API is not at the default endpoint, pass it explicitly:
 
 ```bash
-go run ./cmd/lazycaddy
+lazycaddy --admin-url http://localhost:2019
 ```
 
-Build a local binary:
+or:
 
 ```bash
-go build ./cmd/lazycaddy
-./lazycaddy
+CADDY_ADMIN_API=http://localhost:2019 lazycaddy
 ```
 
-Run tests:
+## Requirements
 
-```bash
-go test ./...
-```
+- A local Caddy instance with the Admin API enabled, or an explicit Admin API URL
+- Access to the configured access logs if you want request tables
+- Linux/systemd for full service discovery and `journalctl` integration
+- Go 1.22+ only if building from source
 
-Make shortcuts are also available. The simplest local run command is:
-
-```bash
-make
-```
-
-Other useful commands:
-
-```bash
-make run
-make build
-make test
-make vet
-make check
-```
-
-## Release
-
-Releases are built with GoReleaser from Git tags. To publish a release:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-The release workflow builds:
-
-- Linux and macOS tarballs for amd64 and arm64
-- Debian `.deb` packages for apt-based installs
-- checksums
-- a Homebrew formula in `kysely/homebrew-tap`
-
-For Homebrew publishing, create a GitHub repository named `kysely/homebrew-tap` and add a `HOMEBREW_TAP_GITHUB_TOKEN` repository secret with permission to push to that tap.
-
-## Admin API discovery
-
-lazycaddy discovers the Admin API endpoint in this order:
-
-1. `--admin-url` / `--admin` CLI override
-2. `CADDY_ADMIN_API` / `CADDY_ADMIN_URL` environment override
-3. `systemd` `caddy.service`: inspect the running process / `ExecStart`, read `--config`, and parse the Caddyfile/JSON `admin` setting
-4. running `caddy` process fallback via `pgrep`
-5. Caddy's default endpoint: `http://localhost:2019`
-
-Override the Admin API URL with either:
-
-```bash
-CADDY_ADMIN_API=http://localhost:2019 go run ./cmd/lazycaddy
-go run ./cmd/lazycaddy --admin-url http://localhost:2019
-```
-
-## Theme detection
-
-lazycaddy uses terminal background detection for automatic light/dark colors. If your terminal or tmux does not report its background correctly, force a theme with:
-
-```bash
-go run ./cmd/lazycaddy --theme light
-go run ./cmd/lazycaddy --theme dark
-LAZYCADDY_THEME=light go run ./cmd/lazycaddy
-```
-
-Accepted values are `auto`, `light`, and `dark`.
-
-## UI model
+## UI overview
 
 lazycaddy opens on **Services** and provides:
 
@@ -188,6 +135,16 @@ v          validate discovered Caddy config
 ←/esc/h/S  return
 ```
 
+## Admin API discovery
+
+lazycaddy treats the running Caddy Admin API config as the source of truth. It discovers the Admin API endpoint in this order:
+
+1. `--admin-url` / `--admin` CLI override
+2. `CADDY_ADMIN_API` / `CADDY_ADMIN_URL` environment override
+3. `systemd` `caddy.service`: inspect the running process / `ExecStart`, read `--config`, and parse the Caddyfile/JSON `admin` setting
+4. running `caddy` process fallback via `pgrep`
+5. Caddy's default endpoint: `http://localhost:2019`
+
 ## Access logs
 
 Access logs are shown per source/host. Request counts and request tables require access logging to be configured and readable for that source.
@@ -203,6 +160,49 @@ log {
 
 Console/stdout/stderr access logs are also parsed from `caddy.service` logs when configured in the active Caddy config.
 
+## Theme detection
+
+lazycaddy uses terminal background detection for automatic light/dark colors. If your terminal or tmux does not report its background correctly, force a theme with:
+
+```bash
+lazycaddy --theme light
+lazycaddy --theme dark
+LAZYCADDY_THEME=light lazycaddy
+```
+
+Accepted values are `auto`, `light`, and `dark`.
+
+## Build from source
+
+Run locally from a checkout:
+
+```bash
+go run ./cmd/lazycaddy
+```
+
+Build a local binary:
+
+```bash
+go build ./cmd/lazycaddy
+./lazycaddy
+```
+
+Make shortcuts are also available. The simplest local run command is:
+
+```bash
+make
+```
+
+Other useful commands:
+
+```bash
+make run
+make build
+make test
+make vet
+make check
+```
+
 ## Development
 
 Project layout:
@@ -214,3 +214,21 @@ internal/caddy/      Admin API, discovery, config extraction, Caddyfile correlat
 internal/logs/       access/service log parsing and readers
 internal/ui/         Bubble Tea model, views, key handling, refresh commands
 ```
+
+## Release
+
+Releases are built with GoReleaser from Git tags:
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+The release workflow builds:
+
+- Linux and macOS tarballs for amd64 and arm64
+- Debian `.deb` packages for apt-based installs
+- checksums
+- a Homebrew formula in `kysely/homebrew-tap`
+
+For Homebrew publishing, create a GitHub repository named `kysely/homebrew-tap` and add a `HOMEBREW_TAP_GITHUB_TOKEN` repository secret with permission to push to that tap.
