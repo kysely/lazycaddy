@@ -18,7 +18,21 @@ Install the latest tagged release with Go:
 go install github.com/kysely/lazycaddy/cmd/lazycaddy@latest
 ```
 
-Or download a prebuilt binary from GitHub Releases once releases are published.
+Install with Homebrew once the tap is published:
+
+```bash
+brew tap kysely/tap
+brew install lazycaddy
+```
+
+Install the Debian/Ubuntu package from a GitHub Release:
+
+```bash
+curl -LO https://github.com/kysely/lazycaddy/releases/download/v0.1.0/lazycaddy_0.1.0_linux_amd64.deb
+sudo apt install ./lazycaddy_0.1.0_linux_amd64.deb
+```
+
+Replace `v0.1.0`, `0.1.0`, and `amd64` with the release and architecture you want.
 
 ## Build and run
 
@@ -66,7 +80,14 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The release workflow builds Linux and macOS binaries for amd64 and arm64 and uploads checksums.
+The release workflow builds:
+
+- Linux and macOS tarballs for amd64 and arm64
+- Debian `.deb` packages for apt-based installs
+- checksums
+- a Homebrew formula in `kysely/homebrew-tap`
+
+For Homebrew publishing, create a GitHub repository named `kysely/homebrew-tap` and add a `HOMEBREW_TAP_GITHUB_TOKEN` repository secret with permission to push to that tap.
 
 ## Admin API discovery
 

@@ -18,9 +18,13 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
 
 archives:
   - id: default
+    ids:
+      - lazycaddy
     formats:
       - tar.gz
     name_template: >-
@@ -28,6 +32,42 @@ archives:
       {{- .Version }}_
       {{- .Os }}_
       {{- .Arch }}
+
+nfpms:
+  - id: linux-packages
+    package_name: lazycaddy
+    ids:
+      - lazycaddy
+    vendor: kysely
+    homepage: https://github.com/kysely/lazycaddy
+    maintainer: kysely
+    description: A fast Go TUI for inspecting and troubleshooting the local Caddy instance.
+    license: MIT
+    bindir: /usr/bin
+    formats:
+      - deb
+    file_name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+
+brews:
+  - name: lazycaddy
+    ids:
+      - default
+    repository:
+      owner: kysely
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/kysely/lazycaddy
+    description: A fast Go TUI for inspecting and troubleshooting the local Caddy instance.
+    license: MIT
+    install: |
+      bin.install "lazycaddy"
+    test: |
+      system "#{bin}/lazycaddy", "--version"
 
 checksum:
   name_template: checksums.txt
