@@ -72,6 +72,45 @@ or:
 CADDY_ADMIN_API=http://localhost:2019 lazycaddy
 ```
 
+## Configuration
+
+lazycaddy can read a small preferences file from:
+
+```txt
+~/.config/lazycaddy/config.yml
+```
+
+or, if `XDG_CONFIG_HOME` is set:
+
+```txt
+$XDG_CONFIG_HOME/lazycaddy/config.yml
+```
+
+Example:
+
+```yaml
+admin_url: http://localhost:2019
+theme: auto
+```
+
+Supported options:
+
+- `admin_url`: Caddy Admin API endpoint
+- `theme`: `auto`, `light`, or `dark`
+
+Precedence is:
+
+```txt
+defaults < config file < environment variables < CLI flags
+```
+
+Use a custom config path with:
+
+```bash
+lazycaddy --config ./config.yml
+LAZYCADDY_CONFIG=./config.yml lazycaddy
+```
+
 ## Requirements
 
 - A local Caddy instance with the Admin API enabled, or an explicit Admin API URL

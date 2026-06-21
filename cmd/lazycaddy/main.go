@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	lazyconfig "github.com/kysely/lazycaddy/internal/config"
 	"github.com/kysely/lazycaddy/internal/ui"
 )
 
@@ -16,8 +17,14 @@ func main() {
 		return
 	}
 
-	ui.ApplyTheme(os.Args, os.Getenv)
-	program := tea.NewProgram(ui.New(os.Args, os.Getenv), tea.WithAltScreen(), tea.WithMouseCellMotion())
+	configResult, err := lazyconfig.Load(os.Args, os.Getenv)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "lazycaddy: %v\n", err)
+		os.Exit(1)
+	}
+
+	ui.ApplyTheme(os.Args, os.Getenv, configResult.Config.Theme)
+	program := tea.NewProgram(ui.NewWithConfig(os.Args, os.Getenv, configResult.Config), tea.WithAltScreen(), tea.WithMouseCellMotion())
 	if _, err := program.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "lazycaddy: %v\n", err)
 		os.Exit(1)
@@ -47,6 +54,7 @@ Usage:
 Flags:
   --admin-url, --admin <url>  Override Caddy Admin API URL
   --theme <auto|light|dark>   Override terminal theme detection
+  --config <path>             Override lazycaddy config file path
   --version, -v               Print version
   --help, -h                  Show help
 

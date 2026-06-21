@@ -35,6 +35,12 @@ type ConfigLoadResult struct {
 // GetExplicitAdminAPIBaseURL returns a CLI/env Admin API override, if present.
 // CLI flags take precedence over environment variables.
 func GetExplicitAdminAPIBaseURL(argv []string, lookupEnv func(string) string) (ExplicitAdminAPIBaseURL, bool) {
+	return GetExplicitAdminAPIBaseURLWithConfig(argv, lookupEnv, "")
+}
+
+// GetExplicitAdminAPIBaseURLWithConfig returns an Admin API override from CLI,
+// environment, or config file. Precedence is CLI > environment > config file.
+func GetExplicitAdminAPIBaseURLWithConfig(argv []string, lookupEnv func(string) string, configURL string) (ExplicitAdminAPIBaseURL, bool) {
 	if lookupEnv == nil {
 		lookupEnv = os.Getenv
 	}
@@ -49,6 +55,10 @@ func GetExplicitAdminAPIBaseURL(argv []string, lookupEnv func(string) string) (E
 
 	if envURL := lookupEnv("CADDY_ADMIN_URL"); envURL != "" {
 		return ExplicitAdminAPIBaseURL{URL: NormalizeAdminURL(envURL), Source: "env"}, true
+	}
+
+	if configURL = strings.TrimSpace(configURL); configURL != "" {
+		return ExplicitAdminAPIBaseURL{URL: NormalizeAdminURL(configURL), Source: "config"}, true
 	}
 
 	return ExplicitAdminAPIBaseURL{}, false

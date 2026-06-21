@@ -58,8 +58,15 @@ type AdminAPIDiscovery struct {
 
 // DiscoverAdminAPIEndpoint discovers Caddy's Admin API endpoint using the same priority as lazycaddy TS.
 func DiscoverAdminAPIEndpoint(ctx context.Context, argv []string, lookupEnv func(string) string) AdminAPIDiscovery {
+	return DiscoverAdminAPIEndpointWithConfig(ctx, argv, lookupEnv, "")
+}
+
+// DiscoverAdminAPIEndpointWithConfig discovers Caddy's Admin API endpoint with
+// an optional config-file Admin API URL. Precedence is CLI > environment >
+// config file > Caddy/system discovery > default.
+func DiscoverAdminAPIEndpointWithConfig(ctx context.Context, argv []string, lookupEnv func(string) string, configAdminURL string) AdminAPIDiscovery {
 	notes := []string{}
-	explicit, hasExplicit := GetExplicitAdminAPIBaseURL(argv, lookupEnv)
+	explicit, hasExplicit := GetExplicitAdminAPIBaseURLWithConfig(argv, lookupEnv, configAdminURL)
 	service := inspectSystemdCaddyService(ctx)
 
 	if hasExplicit {
@@ -151,9 +158,13 @@ func DiscoverySummary(discovery AdminAPIDiscovery) string {
 func explicitDiscovery(explicit ExplicitAdminAPIBaseURL) AdminAPIDiscovery {
 	note := "Using CADDY_ADMIN_API/CADDY_ADMIN_URL from the environment."
 	label := "environment override"
-	if explicit.Source == "cli" {
+	switch explicit.Source {
+	case "cli":
 		note = "Using --admin-url/--admin from the lazycaddy command line."
 		label = "CLI override"
+	case "config":
+		note = "Using admin_url from the lazycaddy config file."
+		label = "lazycaddy config"
 	}
 
 	return AdminAPIDiscovery{

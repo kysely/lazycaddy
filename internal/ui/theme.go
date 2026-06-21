@@ -18,8 +18,8 @@ const (
 // ApplyTheme configures Lip Gloss background detection. By default it leaves
 // Lip Gloss in terminal auto-detection mode, but COLORFGBG is used when present
 // because it is often the only reliable signal available through tmux.
-func ApplyTheme(argv []string, lookupEnv func(string) string) {
-	mode := ThemeModeFromArgsEnv(argv, lookupEnv)
+func ApplyTheme(argv []string, lookupEnv func(string) string, configTheme ...string) {
+	mode := ThemeModeFromArgsEnvConfig(argv, lookupEnv, firstConfigTheme(configTheme))
 	switch mode {
 	case ThemeLight:
 		lipgloss.SetHasDarkBackground(false)
@@ -33,6 +33,10 @@ func ApplyTheme(argv []string, lookupEnv func(string) string) {
 }
 
 func ThemeModeFromArgsEnv(argv []string, lookupEnv func(string) string) ThemeMode {
+	return ThemeModeFromArgsEnvConfig(argv, lookupEnv, "")
+}
+
+func ThemeModeFromArgsEnvConfig(argv []string, lookupEnv func(string) string, configTheme string) ThemeMode {
 	if lookupEnv == nil {
 		lookupEnv = func(string) string { return "" }
 	}
@@ -42,7 +46,17 @@ func ThemeModeFromArgsEnv(argv []string, lookupEnv func(string) string) ThemeMod
 	if theme := lookupEnv("LAZYCADDY_THEME"); theme != "" {
 		return normalizeThemeMode(theme)
 	}
+	if configTheme != "" {
+		return normalizeThemeMode(configTheme)
+	}
 	return ThemeAuto
+}
+
+func firstConfigTheme(values []string) string {
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
 }
 
 func readCLITheme(argv []string) string {

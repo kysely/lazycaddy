@@ -23,6 +23,24 @@ func TestThemeModeFromArgsEnv(t *testing.T) {
 	}
 }
 
+func TestThemeModeFromArgsEnvConfig(t *testing.T) {
+	env := func(key string) string {
+		if key == "LAZYCADDY_THEME" {
+			return "dark"
+		}
+		return ""
+	}
+	if got := ThemeModeFromArgsEnvConfig([]string{"lazycaddy"}, nil, "light"); got != ThemeLight {
+		t.Fatalf("config theme = %s, want light", got)
+	}
+	if got := ThemeModeFromArgsEnvConfig([]string{"lazycaddy"}, env, "light"); got != ThemeDark {
+		t.Fatalf("env should beat config, got %s", got)
+	}
+	if got := ThemeModeFromArgsEnvConfig([]string{"lazycaddy", "--theme", "auto"}, env, "light"); got != ThemeAuto {
+		t.Fatalf("cli should beat env/config, got %s", got)
+	}
+}
+
 func TestDarkBackgroundFromColorFGBG(t *testing.T) {
 	tests := []struct {
 		value string

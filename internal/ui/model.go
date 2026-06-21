@@ -14,6 +14,7 @@ import (
 
 	"github.com/kysely/lazycaddy/internal/app"
 	"github.com/kysely/lazycaddy/internal/caddy"
+	lazyconfig "github.com/kysely/lazycaddy/internal/config"
 	applogs "github.com/kysely/lazycaddy/internal/logs"
 )
 
@@ -115,10 +116,15 @@ var (
 
 // New creates a UI model and performs synchronous lightweight discovery before the TUI starts.
 func New(argv []string, lookupEnv func(string) string) Model {
+	return NewWithConfig(argv, lookupEnv, lazyconfig.Config{})
+}
+
+// NewWithConfig creates a UI model using optional lazycaddy config-file preferences.
+func NewWithConfig(argv []string, lookupEnv func(string) string, cfg lazyconfig.Config) Model {
 	if lookupEnv == nil {
 		lookupEnv = os.Getenv
 	}
-	discovery := caddy.DiscoverAdminAPIEndpoint(context.Background(), argv, lookupEnv)
+	discovery := caddy.DiscoverAdminAPIEndpointWithConfig(context.Background(), argv, lookupEnv, cfg.AdminURL)
 	correlation := caddy.LoadCaddyfileCorrelation(firstNonEmpty(discovery.ConfigPath, commandConfigPath(discovery.Command)), firstNonEmpty(discovery.Adapter, commandAdapter(discovery.Command)))
 
 	return Model{

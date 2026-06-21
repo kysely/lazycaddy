@@ -58,6 +58,34 @@ func TestGetExplicitAdminAPIBaseURLEnvFallback(t *testing.T) {
 	}
 }
 
+func TestGetExplicitAdminAPIBaseURLConfigFallback(t *testing.T) {
+	lookup := func(string) string { return "" }
+
+	explicit, ok := GetExplicitAdminAPIBaseURLWithConfig([]string{"lazycaddy"}, lookup, "config-url:2019")
+	if !ok {
+		t.Fatal("expected explicit admin URL")
+	}
+	if explicit.Source != "config" {
+		t.Fatalf("source = %q, want config", explicit.Source)
+	}
+	if explicit.URL != "http://config-url:2019" {
+		t.Fatalf("url = %q, want http://config-url:2019", explicit.URL)
+	}
+}
+
+func TestGetExplicitAdminAPIBaseURLConfigHasLowerPriorityThanEnv(t *testing.T) {
+	env := map[string]string{"CADDY_ADMIN_API": "env-api:2019"}
+	lookup := func(key string) string { return env[key] }
+
+	explicit, ok := GetExplicitAdminAPIBaseURLWithConfig([]string{"lazycaddy"}, lookup, "config-url:2019")
+	if !ok {
+		t.Fatal("expected explicit admin URL")
+	}
+	if explicit.Source != "env" || explicit.URL != "http://env-api:2019" {
+		t.Fatalf("explicit=%+v, want env", explicit)
+	}
+}
+
 func TestGetAdminAPIBaseURLDefault(t *testing.T) {
 	lookup := func(string) string { return "" }
 	if got := GetAdminAPIBaseURL([]string{"lazycaddy"}, lookup); got != DefaultAdminAPIURL {
