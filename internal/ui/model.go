@@ -472,7 +472,7 @@ func (m Model) servicesViewLines(width int) []string {
 	}
 	if m.State.LastLoad != nil && !m.State.LastLoad.OK {
 		return append(lines,
-			statusErrStyle.Render("Admin API unavailable"),
+			statusErrStyle.Render("Caddy API cannot be reached"),
 			mutedStyle.Render(adminRetryHint(m.Discovery.AdminURL)),
 		)
 	}
@@ -1710,9 +1710,9 @@ func selectedSourceID(state *app.State) string {
 
 func adminRetryHint(adminURL string) string {
 	if adminURL == "" {
-		return "No queryable endpoint discovered; use --admin-url to override"
+		return "Make sure a Caddy service is running with its Admin API enabled, or use --admin-url to override"
 	}
-	return "Caddy is not reachable yet; press r to retry"
+	return "Make sure the Caddy service is running and reachable, then press r to retry"
 }
 
 func padRight(value string, width int) string {
