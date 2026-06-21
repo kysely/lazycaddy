@@ -12,6 +12,20 @@ lazycaddy treats the running Caddy Admin API config as the source of truth, then
 
 ## Install
 
+Install on Linux from GitHub Releases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kysely/lazycaddy/main/install.sh | sh
+```
+
+On macOS, the install script delegates to Homebrew when `brew` is available. Use `--no-brew` to force a direct GitHub Release install.
+
+Install a specific version or directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kysely/lazycaddy/main/install.sh | sh -s -- --version v0.1.1 --bindir ~/.local/bin
+```
+
 Install the latest tagged release with Go:
 
 ```bash
